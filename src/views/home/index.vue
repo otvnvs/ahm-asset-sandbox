@@ -1,418 +1,200 @@
 <template>
-  <div class="spreadsheet-app">
-    <div class="toolbar">
-      <h1>Grid</h1>
-      <div class="formula-preview">
-        <span>FX: </span>
-        <input 
-          type="text" 
-          :value="activeCellText" 
-          placeholder="Select a cell to write formula..." 
-          disabled
-        />
+  <div class="mobile-container">
+    <!-- Minimalist Status/Header Space -->
+    <header class="app-header">
+      <h1 class="header-title">Apps</h1>
+      <span class="status-dot"></span>
+    </header>
+
+    <!-- App Grid Layout -->
+    <main class="app-grid">
+      <div 
+        v-for="app in apps" 
+        :key="app.id" 
+        class="app-item"
+        @click="navigateTo(app.route)"
+      >
+        <!-- Dark minimalist icon frame -->
+        <div class="icon-wrapper">
+          <svg 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            stroke-width="1.5" 
+            stroke-linecap="round" 
+            stroke-linejoin="round"
+            class="app-icon"
+            v-html="app.svgContent"
+          ></svg>
+        </div>
+        <span class="app-label">{{ app.name }}</span>
       </div>
-	<!-- Add the Help button here -->
-	<button class="btn help-btn" @click="showHelp = true">?</button>
-	<button class="btn" @click="clearGrid">Clear</button>
-    </div>
-
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th class="row-label"></th>
-            <th v-for="col in cols" :key="col">{{ col }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(row, rowIndex) in totalRows" :key="rowIndex">
-            <th class="row-label">{{ rowIndex + 1 }}</th>
-            <td 
-              v-for="(col, colIndex) in cols.length" 
-              :key="colIndex" 
-              class="cell-relative"
-              :class="{ 'is-selected': isCellSelected(rowIndex, colIndex) }"
-              @mousedown="startDrag(rowIndex, colIndex)"
-              @mouseenter="continueDrag(rowIndex, colIndex)"
-              @touchstart="startDrag(rowIndex, colIndex)"
-            >
-              
-              <!-- Active Input Mode -->
-              <div v-if="isFocused(rowIndex, colIndex)" class="input-wrapper">
-                <input 
-                  type="text" 
-                  v-model="gridData[rowIndex][colIndex]" 
-                  @input="handleInput($event)"
-                  @keydown="handleKeydown($event, rowIndex, colIndex)"
-                  @blur="onBlur"
-                  :id="`cell-${rowIndex}-${colIndex}`"
-                  inputmode="text"
-                  autocomplete="off"
-                />
-                
-                <!-- Autocomplete Dropdown Panel -->
-                <div v-if="filteredSuggestions.length > 0" class="autocomplete-panel">
-                  <div 
-                    v-for="func in filteredSuggestions" 
-                    :key="func" 
-                    class="autocomplete-item"
-                    @mousedown.prevent="selectSuggestion(func)"
-                  >
-                    {{ func }}
-                  </div>
-                </div>
-              </div>
-
-              <!-- Static Presentation View -->
-              <div 
-                v-else 
-                class="cell-display"
-                :class="{ 'has-formula': isFormula(rowIndex, colIndex) }"
-                @click="focusCell(rowIndex, colIndex)"
-              >
-                {{ displayValue(rowIndex, colIndex) }}
-              </div>
-
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <HelpModal v-if="showHelp" @close="showHelp = false" />
+    </main>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, computed, nextTick, onMounted, onUnmounted } from 'vue';
-import { createEmptyGrid, saveGridData, loadGridData, clearStorage, evaluateCell, formatNumber } from '../../utils/spreadsheet.js';
-import HelpModal from '../../components/help/index.vue';
-const showHelp = ref(false);
-const cols = ref(['A', 'B', 'C', 'D', 'E']);
-const totalRows = 15;
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-const gridData = ref(loadGridData(totalRows, cols.value.length));
-const focusedCell = ref(null); 
-const typedText = ref('');
+const router = useRouter()
 
-// Cell dragging and multi-selection properties
-const isDragging = ref(false);
-const dragStart = ref(null);
-const dragEnd = ref(null);
+// Vanilla SVG inner paths (Ultra-light stroke style)
+const apps = ref([
+  { 
+    id: 1, 
+    name: 'Spreadsheet', 
+    route: '/spreadsheet', 
+    //svgContent: '<polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line>' //terminal
+    svgContent: '<path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><line x1="10" y1="10" x2="10" y2="20"></line>'
 
-const availableFunctions = ['SUM', 'AVERAGE', 'MIN', 'MAX'];
+  },
+  { 
+    id: 2, 
+    name: 'Todo', 
+    route: '/todo', 
+    //svgContent: '<line x1="6" y1="12" x2="10" y2="12"></line><line x1="8" y1="10" x2="8" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="18" y1="11" x2="18.01" y2="11"></line><rect x="2" y="6" width="20" height="12" rx="3"></rect>' 
+    svgContent: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><path d="m9 12 2 2 4-4"></path><line x1="3" y1="10" x2="21" y2="10"></line>'
 
-watch(gridData, (newData) => { saveGridData(newData); }, { deep: true });
+  },
+  { 
+    id: 3, 
+    name: 'Mind Map', 
+    route: '/mindmap', 
+    //svgContent: '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>' 
+    svgContent: '<circle cx="12" cy="12" r="2.5"></circle><path d="M12 9.5V4.5"></path><path d="m14 13.5 4 2.5"></path><path d="m10 13.5-4 2.5"></path><circle cx="12" cy="3.5" r="1"></circle><circle cx="19" cy="16.5" r="1"></circle><circle cx="5" cy="16.5" r="1"></circle><path d="M18 16.5h2"></path><path d="M6 16.5H4"></path>'
 
-const isFocused = (r, c) => focusedCell.value?.row === r && focusedCell.value?.col === c;
-const isFormula = (r, c) => gridData.value[r][c]?.toString().startsWith('=');
+  },
+  { 
+    id: 4, 
+    name: 'Calendar', 
+    route: '/calendar', 
+    //svgContent: '<circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>' //cog
+    svgContent: '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"></path>'
 
-const focusCell = async (r, c) => {
-  focusedCell.value = { row: r, col: c };
-  dragStart.value = { row: r, col: c };
-  dragEnd.value = { row: r, col: c };
-  typedText.value = gridData.value[r][c] || '';
-  await nextTick();
-  const el = document.getElementById(`cell-${r}-${c}`);
-  if (el) el.focus();
-};
+  },
+  {
+    id: 5, 
+    name: 'Synth', 
+    route: '/tapsynth', 
+    svgContent: '<path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle>'
+  },
+  {
+    id: 6, 
+    name: 'Editor', 
+    route: '/editor', 
+    svgContent: '<path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>'
+  },
+  {
+    id: 7,
+    name: 'Alarm',
+    route: '/alarm',
+    svgContent: '<circle cx="12" cy="13" r="7" /><path d="M5 6.5C4 7.5 3 9 3 10.5" /><path d="M19 6.5C20 7.5 21 9 21 10.5" /><path d="M7 20l-1.5 2" /><path d="M17 20l1.5 2" /><path d="M12 10v3h3" />'
+  },
+  {
+    id: 8,
+    name: 'Composer',
+    route: '/composer',
+    svgContent: '<path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /><path d="M12 10h9" /><path d="M3 5h3" /><path d="M3 9h10" /><path d="M3 13h5" />'
+  },
 
-const handleInput = (event) => {
-  typedText.value = event.target.value;
-};
 
-const onBlur = () => {
-  focusedCell.value = null;
-  typedText.value = '';
-};
+])
 
-// Keyboard arrow navigation handlers
-const handleKeydown = (event, r, c) => {
-  let targetRow = r;
-  let targetCol = c;
-
-  switch (event.key) {
-    case 'ArrowUp':
-      if (r > 0) targetRow--;
-      break;
-    case 'ArrowDown':
-      if (r < totalRows - 1) targetRow++;
-      break;
-    case 'ArrowLeft':
-      // Move left only if cursor is at the beginning of the text
-      if (event.target.selectionStart === 0 && c > 0) targetCol--;
-      else return;
-      break;
-    case 'ArrowRight':
-      // Move right only if cursor is at the end of the text
-      if (event.target.selectionStart === event.target.value.length && c < cols.value.length - 1) targetCol++;
-      else return;
-      break;
-    case 'Enter':
-      if (r < totalRows - 1) targetRow++;
-      break;
-    default:
-      return;
-  }
-
-  event.preventDefault();
-  focusCell(targetRow, targetCol);
-};
-
-// Cell Selection Dragging State Mechanics
-const startDrag = (r, c) => {
-  isDragging.value = true;
-  dragStart.value = { row: r, col: c };
-  dragEnd.value = { row: r, col: c };
-};
-
-const continueDrag = (r, c) => {
-  if (!isDragging.value) return;
-  dragEnd.value = { row: r, col: c };
-};
-
-const stopDrag = () => {
-  isDragging.value = false;
-};
-
-const isCellSelected = (r, c) => {
-  if (!dragStart.value || !dragEnd.value) return false;
-  
-  const minR = Math.min(dragStart.value.row, dragEnd.value.row);
-  const maxR = Math.max(dragStart.value.row, dragEnd.value.row);
-  const minC = Math.min(dragStart.value.col, dragEnd.value.col);
-  const maxC = Math.max(dragStart.value.col, dragEnd.value.col);
-
-  return r >= minR && r <= maxR && c >= minC && c <= maxC;
-};
-
-// Autocomplete Logic
-const filteredSuggestions = computed(() => {
-  const text = typedText.value.trim().toUpperCase();
-  if (!text.startsWith('=')) return [];
-  const formulaMatch = text.match(/([A-Z]+)$/);
-  if (!formulaMatch) return [];
-  return availableFunctions.filter(f => f.startsWith(formulaMatch[1]));
-});
-
-const selectSuggestion = async (funcName) => {
-  if (!focusedCell.value) return;
-  const { row, col } = focusedCell.value;
-  const currentText = gridData.value[row][col];
-  const updatedText = currentText.replace(/([A-Z]+)$/i, `${funcName}(`);
-  gridData.value[row][col] = updatedText;
-  typedText.value = updatedText;
-
-  await nextTick();
-  const el = document.getElementById(`cell-${row}-${col}`);
-  if (el) el.focus();
-};
-
-const activeCellText = computed(() => {
-  if (!focusedCell.value) return '';
-  return gridData.value[focusedCell.value.row][focusedCell.value.col];
-});
-
-const displayValue = (r, c) => {
-  const evaluated = evaluateCell(gridData.value[r][c], gridData.value);
-  return formatNumber(evaluated);
-};
-
-const clearGrid = () => {
-  if (confirm('Clear all data?')) {
-    clearStorage();
-    gridData.value = createEmptyGrid(totalRows, cols.value.length);
-    focusedCell.value = null;
-    dragStart.value = null;
-    dragEnd.value = null;
-  }
-};
-
-onMounted(() => {
-  window.addEventListener('mouseup', stopDrag);
-  window.addEventListener('touchend', stopDrag);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('mouseup', stopDrag);
-  window.removeEventListener('touchend', stopDrag);
-});
+const navigateTo = (route) => {
+  router.push(route)
+}
 </script>
 
 <style scoped>
-.spreadsheet-app {
-  --bg: #121212;
-  --surface: #1e1e1e;
-  --border: #333333;
-  --text: #e0e0e0;
-  --accent: #bb86fc;
-  --header-bg: #252525;
-  --selection: rgba(187, 134, 252, 0.15);
-  
-  background-color: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  padding: 10px;
+/* OLED Black / Deep Slate Shell */
+.mobile-container {
+  margin: 0 auto;
   min-height: 100vh;
+  background-color: #0a0a0c;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #f3f4f6;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
 }
 
-.toolbar {
+/* Minimalist Header Alignment */
+.app-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-  padding: 5px;
+  padding: 40px 24px 16px 24px;
 }
 
-h1 {
-  font-size: 1.1rem;
-  font-weight: 500;
+.header-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  color: #8e8e93;
+  text-transform: uppercase;
 }
 
-.formula-preview {
+.status-dot {
+  width: 6px;
+  height: 6px;
+  background-color: #30d158;
+  border-radius: 50%;
+}
+
+/* 4-Column strict spacing */
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px 12px;
+  padding: 24px;
+}
+
+/* Touch targets */
+.app-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  flex-grow: 1;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-
-.formula-preview span {
-  color: var(--accent);
-  margin-right: 5px;
-  font-weight: bold;
-  font-size: 0.8rem;
-}
-
-.formula-preview input {
-  background: transparent;
-  border: none;
-  color: #aaa;
-  width: 100%;
-  outline: none;
-  font-size: 0.8rem;
-}
-
-.btn {
-  background: var(--surface);
-  color: var(--accent);
-  border: 1px solid var(--border);
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 0.85rem;
   cursor: pointer;
-}
-
-.table-container {
-  width: 100%;
-  overflow-x: auto;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--surface);
-}
-
-table {
-  border-collapse: collapse;
-  width: 100%;
-}
-
-th, td {
-  border: 1px solid var(--border);
-  min-width: 75px;
-  height: 42px;
-  text-align: center;
-  font-size: 0.9rem;
-}
-
-th {
-  background-color: var(--header-bg);
-  color: #888;
-  font-weight: normal;
-  font-size: 0.8rem;
   user-select: none;
+  transition: opacity 0.15s ease;
 }
 
-th.row-label {
-  min-width: 40px;
+/* Monochromatic tap feedback */
+.app-item:active {
+  opacity: 0.5;
 }
 
-.cell-relative {
-  position: relative;
-}
-
-.is-selected {
-  background-color: var(--selection);
-  box-shadow: inset 0 0 0 1px var(--accent);
-}
-
-.input-wrapper {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
-td input {
-  width: 100%;
-  height: 100%;
-  border: none;
-  color: var(--text);
-  text-align: center;
-  font-size: 0.9rem;
-  padding: 2px;
-  outline: 1px solid var(--accent);
-  background: #252525;
-}
-
-.cell-display {
-  width: 100%;
-  height: 100%;
+/* Dark uniform square wrapper */
+.icon-wrapper {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  background-color: #16161a;
+  border: 1px solid #242429;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  user-select: none;
+  margin-bottom: 10px;
 }
 
-.cell-display.has-formula {
-  color: #81c784;
+/* High-contrast white stroke lines */
+.app-icon {
+  width: 22px;
+  height: 22px;
+  color: #ffffff;
 }
 
-.autocomplete-panel {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  background: #252525;
-  border: 1px solid var(--accent);
-  border-top: none;
-  z-index: 10;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-  max-height: 120px;
-  overflow-y: auto;
-}
-
-.autocomplete-item {
-  padding: 6px;
-  font-size: 0.75rem;
-  text-align: left;
-  color: var(--accent);
-  cursor: pointer;
-  border-bottom: 1px solid var(--border);
-}
-
-.autocomplete-item:last-child {
-  border-bottom: none;
-}
-
-.autocomplete-item:active {
-background: var(--surface);}
-
-.help-btn {
-  min-width: 32px;
-  padding: 6px 0;
+/* Muted modern text labeling */
+.app-label {
+  font-size: 11px;
+  font-weight: 400;
+  color: #8e8e93;
   text-align: center;
-  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  letter-spacing: 0.01em;
 }
 </style>
+
