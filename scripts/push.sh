@@ -96,6 +96,7 @@ echo "Pushing target directories (src, public, dist)..."
 $ADB push "src" "$TARGET_DIR/www/src" > /dev/null
 $ADB push "public" "$TARGET_DIR/www/public" > /dev/null
 $ADB push "dist" "$TARGET_DIR/www/dist" > /dev/null
+$ADB push "lib" "$TARGET_DIR/www/lib" > /dev/null
 
 # 4. Securely copy everything into the sandbox
 echo "Deploying to secure sandbox..."

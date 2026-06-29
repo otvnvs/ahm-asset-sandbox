@@ -17,7 +17,6 @@ const RHYTHMS = Array(
   Array('q', 'e', 'e', 'e', 'e', 'e', 'e'),
   Array('h', 'e', 'e', 'e', 'e')
 );
-
 export function generateMeasure(currentScore) {
   let lastMidi = 60;
   let totalMeasures = 0;
