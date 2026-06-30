@@ -13,7 +13,8 @@ const routes = [
   { name: 'alarm', path: '/alarm', component: ()=>import("../apps/alarm/Main.vue")},
   { name: 'composer', path: '/composer', component: ()=>import("../apps/composer/views/home/index.vue")},
   { name: 'localstorage', path: '/localstorage', component: ()=>import("../apps/localstorage/views/home/index.vue")},
-  { name: 'explorer', path: '/explorer', component: ()=>import("../apps/explorer/views/home/index.vue")}
+  { name: 'explorer', path: '/explorer', component: ()=>import("../apps/explorer/views/home/index.vue")},
+  { name: 'anc', path: '/anc', component: ()=>import("../apps/anc/views/home/index.vue")}
 ];
 
 const router = createRouter({

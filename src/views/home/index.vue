@@ -109,6 +109,14 @@ const apps = ref([
     route: '/explorer',
     svgContent: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /><path d="M6 10v7" /><path d="M6 13h4" /><path d="M6 17h4" /><path d="M10 12h3" /><path d="M10 16h3" />'
   },
+{
+  id: 11,
+  name: 'ANC',
+  route: '/anc',
+  svgContent: '<circle cx="12" cy="12" r="10" /><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" /><line x1="12" y1="2" x2="12" y2="4" /><line x1="12" y1="20" x2="12" y2="22" /><line x1="2" y1="12" x2="4" y2="12" /><line x1="20" y1="12" x2="22" y2="12" />'
+}
+
+
 ])
 
 const navigateTo = (route) => {
