@@ -97,13 +97,18 @@ const apps = ref([
     route: '/composer',
     svgContent: '<path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /><path d="M12 10h9" /><path d="M3 5h3" /><path d="M3 9h10" /><path d="M3 13h5" />'
   },
-{
-  id: 9,
-  name: 'Local Storage',
-  route: '/localstorage',
-  svgContent: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /><path d="M6 10v7" /><path d="M6 13h4" /><path d="M6 17h4" /><path d="M10 12h3" /><path d="M10 16h3" />'
-}
-
+  {
+    id: 9,
+    name: 'Local Storage',
+    route: '/localstorage',
+    svgContent: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /><path d="M6 10v7" /><path d="M6 13h4" /><path d="M6 17h4" /><path d="M10 12h3" /><path d="M10 16h3" />'
+  },
+  {
+    id: 10,
+    name: 'Explorer',
+    route: '/explorer',
+    svgContent: '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /><path d="M6 10v7" /><path d="M6 13h4" /><path d="M6 17h4" /><path d="M10 12h3" /><path d="M10 16h3" />'
+  },
 ])
 
 const navigateTo = (route) => {
